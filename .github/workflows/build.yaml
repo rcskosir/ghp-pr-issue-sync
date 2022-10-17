@@ -19,5 +19,5 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: '1.18.0'
-      - run: bash scripts/gogetcookie.sh
+      #- run: bash scripts/gogetcookie.sh
       - run: make build

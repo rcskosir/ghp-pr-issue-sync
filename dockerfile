@@ -3,7 +3,7 @@
 FROM golang:1.18-alpine
 
 RUN apk update && apk upgrade && apk add --update alpine-sdk && \
-    apk add --no-cache bash git openssh make cmake
+    apk add --update --no-cache bash git openssh make cmake dcron libcap github-cli
 
 WORKDIR /app
 
@@ -11,4 +11,4 @@ COPY . .
 
 RUN make install
 
-CMD [ "/ghp-pr-sync" ]
+CMD scripts/entry.sh

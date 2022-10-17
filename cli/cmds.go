@@ -9,10 +9,23 @@ import (
 	"github.com/katbyte/ghp-pr-sync/lib/gh"
 	"github.com/katbyte/ghp-pr-sync/version"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	//nolint:misspell
 	c "github.com/gookit/color"
 )
+
+func ValidateParams(params []string) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		for _, p := range params {
+			if viper.GetString(p) == "" {
+				return fmt.Errorf(p + " parameter can't be empty")
+			}
+		}
+
+		return nil
+	}
+}
 
 func Make(cmdName string) (*cobra.Command, error) {
 	// This is a no-op to avoid accidentally triggering broken builds on malformed commands
@@ -21,7 +34,9 @@ func Make(cmdName string) (*cobra.Command, error) {
 		Short:         cmdName + "is a small utility to TODO",
 		Long:          `TODO`,
 		SilenceErrors: true,
+		PreRunE:       ValidateParams([]string{"token", "org", "repo", "project-number"}),
 		RunE: func(cmd *cobra.Command, args []string) error {
+
 			f := GetFlags()
 			r := gh.NewRepo(f.Owner, f.Repo, f.Token)
 
@@ -146,7 +161,7 @@ func Make(cmdName string) (*cobra.Command, error) {
 				byStatus[statusText] = append(byStatus[statusText], pr.GetNumber())
 
 				q := `query=
-					mutation ($project: ID!, $item: ID!, $status_field: ID!, $status_value: String!, $pr_field: ID!, $pr_value: String!
+					mutation ($project: ID!, $item: ID!, $status_field: ID!, $status_value: String!, $pr_field: ID!, $pr_value: String!, $user_field: ID!, $user_value: String!
 					) {
 					  set_status: updateProjectV2ItemFieldValue(input: {
 						projectId: $project
@@ -172,6 +187,18 @@ func Make(cmdName string) (*cobra.Command, error) {
 						  id
 						  }
 					  }
+                      set_user: updateProjectV2ItemFieldValue(input: {
+						projectId: $project
+						itemId: $item
+						fieldId: $user_field
+						value: { 
+						  text: $user_value
+						}
+					  }) {
+						projectV2Item {
+						  id
+						  }
+					  }
 					}
 				`
 
@@ -182,6 +209,8 @@ func Make(cmdName string) (*cobra.Command, error) {
 					{"-f", "status_value=" + status},
 					{"-f", "pr_field=" + fields["PR#"]},
 					{"-f", fmt.Sprintf("pr_value=%d", *pr.Number)},
+					{"-f", "user_field=" + fields["User"]},
+					{"-f", fmt.Sprintf("user_value=%s", pr.User.GetLogin())},
 				}
 
 				out, err := r.GraphQLQuery(q, p)
