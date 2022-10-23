@@ -57,6 +57,7 @@ func GetFlags() FlagData {
 	if owner == "" {
 		owner = viper.GetString("org")
 	}
+
 	// there has to be an easier way....
 	return FlagData{
 		Token:         viper.GetString("token"),

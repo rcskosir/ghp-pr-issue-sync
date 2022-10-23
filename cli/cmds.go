@@ -28,7 +28,6 @@ func ValidateParams(params []string) func(cmd *cobra.Command, args []string) err
 }
 
 func Make(cmdName string) (*cobra.Command, error) {
-	// This is a no-op to avoid accidentally triggering broken builds on malformed commands
 	root := &cobra.Command{
 		Use:           cmdName + " [command]",
 		Short:         cmdName + "is a small utility to TODO",
@@ -74,9 +73,11 @@ func Make(cmdName string) (*cobra.Command, error) {
 			c.Printf(" found <yellow>%d</>\n", len(*prs))
 
 			if len(f.Authors) > 0 {
-				// map of microsoft users
+				c.Printf(" filtering on: <yellow>%s:</>\n", f.Authors)
+
+				// map of users
 				msUserMap := map[string]bool{}
-				for _, u := range f.Authors {
+				for _, u := range strings.Split(f.Authors[0], ",") { // TODO BUG for some reason it is not correctly splitting on ,? so hack this in
 					msUserMap[u] = true
 				}
 
