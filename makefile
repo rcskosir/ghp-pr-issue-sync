@@ -31,6 +31,9 @@ build:
 	@echo "==> building..."
 	go build -ldflags "-X github.com/katbyte/ghp-pr-sync/lib/version.GitCommit=${GIT_COMMIT}"
 
+docker:
+	docker build --network=host --tag ghp-pr-sync .
+
 goimports:
 	@echo "==> Fixing imports code with goimports..."
 	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do ./scripts/goimport-file.sh "$$f"; done
@@ -48,7 +51,6 @@ depscheck:
 	@go mod vendor
 	@git diff --compact-summary --exit-code -- vendor || \
 		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)
-
 
 install:
 	@echo "==> installing..."
