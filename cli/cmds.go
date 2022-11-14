@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/google/go-github/v45/github"
 	"github.com/katbyte/ghp-pr-sync/lib/gh"
@@ -50,6 +51,8 @@ func Make(cmdName string) (*cobra.Command, error) {
 
 			statuses := map[string]string{}
 			fields := map[string]string{}
+
+			// TODO write GetProjectFields
 			for _, f := range project.Data.Organization.ProjectV2.Fields.Nodes {
 				fields[f.Name] = f.Id
 				c.Printf("    <lightBlue>%s</> <> <lightCyan>%s</>\n", f.Name, f.Id)
@@ -103,6 +106,9 @@ func Make(cmdName string) (*cobra.Command, error) {
 
 			byStatus := map[string][]int{}
 
+			totalWaiting := 0
+			totalDaysWaiting := 0
+
 			for _, pr := range *prs {
 				prNode := *pr.NodeID
 
@@ -123,6 +129,9 @@ func Make(cmdName string) (*cobra.Command, error) {
 					continue
 				}
 
+				daysOpen := int(time.Now().Sub(pr.GetCreatedAt()) / (time.Hour * 24))
+				daysWaiting := 0
+
 				status := ""
 				statusText := ""
 				// nolint: gocritic
@@ -131,7 +140,8 @@ func Make(cmdName string) (*cobra.Command, error) {
 					c.Printf("  <blue>Approved</> <gray>(reviews)</>\n")
 				} else if pr.GetState() == "closed" {
 					statusText = "Closed"
-					c.Printf("  <darkred>In Progress</> <gray>(state)</>\n")
+					daysOpen = int(pr.GetClosedAt().Sub(pr.GetCreatedAt()) / (time.Hour * 24))
+					c.Printf("  <darkred>Closed</> <gray>(state)</>\n")
 				} else if pr.Milestone != nil && *pr.Milestone.Title == "Blocked" {
 					statusText = "Blocked"
 					c.Printf("  <red>Blocked</> <gray>(milestone)</>\n")
@@ -154,15 +164,55 @@ func Make(cmdName string) (*cobra.Command, error) {
 
 					if statusText == "" {
 						statusText = "Waiting for Review"
-						c.Printf("  <green>Waiting for Review</> <gray>(default)</>\n")
+						c.Printf("  <green>Waiting for Review</> <gray>(default)</>")
+
+						// calculate days waiting
+						daysWaiting = daysOpen
+						totalWaiting++
+
+						events, err := r.GetAllIssueEvents(*pr.Number)
+						if err != nil {
+							c.Printf("\n\n <red>ERROR!!</> %s\n", err)
+							return nil
+						}
+						c.Printf(" with <magenta>%d</> events\n", len(*events))
+
+						for _, t := range *events {
+
+							// check for waiting response label removed
+							if t.GetEvent() == "unlabeled" {
+								if t.Label.GetName() == "waiting-response" {
+									daysWaiting = int(time.Now().Sub(t.GetCreatedAt()) / (time.Hour * 24))
+									break
+								}
+							}
+
+							// check for blocked milestone removal
+							if t.GetEvent() == "unlabeled" {
+								if t.Milestone.GetTitle() == "Blocked" {
+									daysWaiting = int(time.Now().Sub(t.GetCreatedAt()) / (time.Hour * 24))
+									break
+								}
+							}
+						}
+
+						totalDaysWaiting = totalDaysWaiting + daysWaiting
 					}
 				}
 
 				status = statuses[statusText]
 				byStatus[statusText] = append(byStatus[statusText], pr.GetNumber())
 
+				c.Printf("  open %d days, waiting %d days\n", daysOpen, daysWaiting)
+
 				q := `query=
-					mutation ($project: ID!, $item: ID!, $status_field: ID!, $status_value: String!, $pr_field: ID!, $pr_value: String!, $user_field: ID!, $user_value: String!
+					mutation (
+                      $project:ID!, $item:ID!, 
+                      $status_field:ID!, $status_value:String!, 
+                      $pr_field:ID!, $pr_value:String!, 
+                      $user_field:ID!, $user_value:String!, 
+                      $daysOpen_field:ID!, $daysOpen_value:Float!, 
+                      $daysWait_field:ID!, $daysWait_value:Float!,
 					) {
 					  set_status: updateProjectV2ItemFieldValue(input: {
 						projectId: $project
@@ -200,6 +250,30 @@ func Make(cmdName string) (*cobra.Command, error) {
 						  id
 						  }
 					  }
+					  set_dopen: updateProjectV2ItemFieldValue(input: {
+						projectId: $project
+						itemId: $item
+						fieldId: $daysOpen_field
+						value: { 
+						  number: $daysOpen_value
+						}
+					  }) {
+						projectV2Item {
+						  id
+						  }
+					  }
+					  set_dwait: updateProjectV2ItemFieldValue(input: {
+						projectId: $project
+						itemId: $item
+						fieldId: $daysWait_field
+						value: { 
+						  number: $daysWait_value
+						}
+					  }) {
+						projectV2Item {
+						  id
+						  }
+					  }
 					}
 				`
 
@@ -209,9 +283,13 @@ func Make(cmdName string) (*cobra.Command, error) {
 					{"-f", "status_field=" + fields["Status"]},
 					{"-f", "status_value=" + status},
 					{"-f", "pr_field=" + fields["PR#"]},
-					{"-f", fmt.Sprintf("pr_value=%d", *pr.Number)},
+					{"-f", fmt.Sprintf("pr_value=%d", *pr.Number)}, // todo string + value
 					{"-f", "user_field=" + fields["User"]},
 					{"-f", fmt.Sprintf("user_value=%s", pr.User.GetLogin())},
+					{"-f", "daysOpen_field=" + fields["Open Days"]},
+					{"-F", fmt.Sprintf("daysOpen_value=%d", daysOpen)},
+					{"-f", "daysWait_field=" + fields["Waiting Days"]},
+					{"-F", fmt.Sprintf("daysWait_value=%d", daysWaiting)},
 				}
 
 				out, err := r.GraphQLQuery(q, p)
@@ -231,6 +309,7 @@ func Make(cmdName string) (*cobra.Command, error) {
 			}
 			c.Printf("\n")
 
+			c.Printf("Total of %d waiting for on average %d days\n", totalWaiting, totalDaysWaiting/totalWaiting)
 			return nil
 		},
 	}
