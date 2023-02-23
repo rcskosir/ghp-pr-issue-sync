@@ -11,4 +11,6 @@ COPY . .
 
 RUN make install
 
+RUN chmod +x scripts/entry.sh
+
 CMD scripts/entry.sh
