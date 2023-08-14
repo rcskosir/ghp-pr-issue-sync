@@ -10,6 +10,13 @@ on:
       - '**.go'
       - 'vendor/**'
       - '.github/workflows/**'
+  issues:
+    types: [ 'labeled' ]
+    paths:
+      - '.github/**'
+      - '**.go'
+      - 'vendor/**'
+      - '.github/workflows/**'
 
 jobs:
   golint:
