@@ -79,6 +79,8 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 				// get all issues
 				c.Printf("Retrieving all issues for <white>%s</>/<cyan>%s</>...", r.Owner, r.Name)
 				issues, err := r.GetAllIssues("open")
+
+				//need to filter for only issues labeled bug
 				if err != nil {
 					c.Printf("\n\n <red>ERROR!!</> %s\n", err)
 					return nil
