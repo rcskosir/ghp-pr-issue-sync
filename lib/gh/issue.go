@@ -59,6 +59,9 @@ func (r Repo) GetAllIssues(state string) (*[]github.Issue, error) {
 				clog.Log.Debugf("issues[%d].Number was nil/0, skipping", index)
 				continue
 			}
+			if label := i.GetLabelsURL(); label == "bug" {
+
+			}
 
 			allIssues = append(allIssues, *i)
 		}

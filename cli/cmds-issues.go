@@ -2,11 +2,9 @@ package cli
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v45/github"
 	"github.com/katbyte/ghp-pr-sync/lib/gh"
 	"github.com/katbyte/ghp-pr-sync/version"
 	"github.com/spf13/cobra"
@@ -34,13 +32,13 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 		Short:         cmdName + "is a small utility to TODO",
 		Long:          `TODO`,
 		SilenceErrors: true,
-		PreRunE:       ValidateParams([]string{"token", "org", "repo", "project-number"}),
+		PreRunE:       ValidateParamsIssues([]string{"token", "org", "repo", "project-number"}),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			/**GetFlags gets the Owner, Project Number and token, my Project number is 188
 			Right now this runs for the PR project, so I need to either duplicate everything to pull
 			my project number, or I need a loop that does PR, then Issue projects
 			**/
-			f := GetFlags()
+			f := GetFlagsIssues()
 			p := gh.NewProject(f.Owner, f.ProjectNumber, f.Token)
 
 			c.Printf("Looking up project details for <green>%s</>/<lightGreen>%d</>...\n", f.Org, f.ProjectNumber)
@@ -80,41 +78,41 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 				c.Printf("Retrieving all issues for <white>%s</>/<cyan>%s</>...", r.Owner, r.Name)
 				issues, err := r.GetAllIssues("open")
 
-				//need to filter for only issues labeled bug
 				if err != nil {
 					c.Printf("\n\n <red>ERROR!!</> %s\n", err)
 					return nil
 				}
 				c.Printf(" found <yellow>%d</>\n", len(*issues))
 
-				if len(f.Authors) > 0 {
-					c.Printf(" filtering on: <yellow>%s:</>\n", f.Authors)
-
-					// map of users
-					msUserMap := map[string]bool{}
-					for _, u := range f.Authors {
-						msUserMap[u] = true
-					}
-
-					var filteredIssues []github.Issue
-					for _, issue := range *issues {
-						if msUserMap[issue.User.GetLogin()] {
-							filteredIssues = append(filteredIssues, issue)
-						}
-					}
-
-					sort.Slice(filteredIssues, func(i, j int) bool {
-						return filteredIssues[i].GetNumber() < filteredIssues[j].GetNumber()
-					})
-
-					c.Printf("  Found <lightBlue>%d</> filtered PRs: ", len(filteredIssues))
-					for _, pr := range filteredIssues {
-						c.Printf("<white>%d</>,", pr.GetNumber())
-					}
-					c.Printf("\n\n")
-
-					issues = &filteredIssues
-				}
+				//Currently not interested in the username of the author for issues
+				//if len(f.Authors) > 0 {
+				//	c.Printf(" filtering on: <yellow>%s:</>\n", f.Authors)
+				//
+				//	// map of users
+				//	msUserMap := map[string]bool{}
+				//	for _, u := range f.Authors {
+				//		msUserMap[u] = true
+				//	}
+				//
+				//	var filteredIssues []github.Issue
+				//	for _, issue := range *issues {
+				//		if msUserMap[issue.User.GetLogin()] {
+				//			filteredIssues = append(filteredIssues, issue)
+				//		}
+				//	}
+				//
+				//	sort.Slice(filteredIssues, func(i, j int) bool {
+				//		return filteredIssues[i].GetNumber() < filteredIssues[j].GetNumber()
+				//	})
+				//
+				//	c.Printf("  Found <lightBlue>%d</> filtered PRs: ", len(filteredIssues))
+				//	for _, pr := range filteredIssues {
+				//		c.Printf("<white>%d</>,", pr.GetNumber())
+				//	}
+				//	c.Printf("\n\n")
+				//
+				//	issues = &filteredIssues
+				//}
 
 				byStatus := map[string][]int{}
 
@@ -125,13 +123,21 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 					issueNode := *issue.NodeID
 
 					// flat := strings.Replace(strings.Replace(q, "\n", " ", -1), "\t", "", -1)
-					c.Printf("Syncing pr <lightCyan>%d</> (<cyan>%s</>) to project.. ", issue.GetNumber(), issueNode)
-					iid, err := p.AddToProject(pid, issueNode)
-					if err != nil {
-						c.Printf("\n\n <red>ERROR!!</> %s", err)
-						continue
+					//only put issues labeled bug onto the project
+					var iid *string
+					for _, l := range issue.Labels {
+						if l != nil {
+							if *l.Name == "bug" {
+								c.Printf("Syncing issue <lightCyan>%d</> (<cyan>%s</>) to project.. ", issue.GetNumber(), issueNode)
+								iid, err := p.AddToProject(pid, issueNode)
+								if err != nil {
+									c.Printf("\n\n <red>ERROR!!</> %s", err)
+									continue
+								}
+								c.Printf("<magenta>%s</>", *iid)
+							}
+						}
 					}
-					c.Printf("<magenta>%s</>", *iid)
 
 					// figure out status
 					// TODO if approved make sure it stays approved
@@ -337,7 +343,7 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 		},
 	})
 
-	if err := configureFlags(root); err != nil {
+	if err := configureFlagsIssues(root); err != nil {
 		return nil, fmt.Errorf("unable to configure flags: %w", err)
 	}
 

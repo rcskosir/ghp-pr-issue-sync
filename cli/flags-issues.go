@@ -19,7 +19,7 @@ type FlagDataIssues struct {
 
 // May need to have 2 configure flags? one for PR project, one for issue project
 func configureFlagsIssues(root *cobra.Command) error {
-	flags := FlagData{}
+	flags := FlagDataIssues{}
 	pflags := root.PersistentFlags()
 
 	pflags.StringVarP(&flags.Token, "token", "t", "", "github oauth token (GITHUB_TOKEN)")
@@ -54,7 +54,7 @@ func configureFlagsIssues(root *cobra.Command) error {
 	return nil
 }
 
-func GetFlagsIssues() FlagData {
+func GetFlagsIssues() FlagDataIssues {
 	owner := viper.GetString("owner")
 	if owner == "" {
 		owner = viper.GetString("org")
@@ -71,7 +71,7 @@ func GetFlagsIssues() FlagData {
 	}
 
 	// there has to be an easier way....
-	return FlagData{
+	return FlagDataIssues{
 		Token:         viper.GetString("token"),
 		Org:           viper.GetString("org"),
 		Owner:         owner,
