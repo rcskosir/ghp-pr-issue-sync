@@ -52,7 +52,6 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 			statuses := map[string]string{}
 			fields := map[string]string{}
 
-			// TODO write GetProjectFields
 			for _, f := range project.Data.Organization.ProjectV2.Fields.Nodes {
 				fields[f.Name] = f.Id
 				c.Printf("    <lightBlue>%s</> <> <lightCyan>%s</>\n", f.Name, f.Id)
@@ -70,7 +69,6 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 			//Can't add all issues with current limit on number of issues on a project
 			for _, repo := range f.Repos {
 
-				// todo support repos that are owner/repo by overriding the param one
 				r := gh.NewRepo(f.Owner, repo, f.Token)
 
 				// get all issues
@@ -84,7 +82,7 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 				c.Printf(" found <yellow>%d</>\n", len(*issues))
 
 				//Currently not interested in the username of the author for issues, so I removed the code for now
-
+				// TODO calculate days open for 365 average (number of bugs from last 365/number of days open for last 365 days)
 				totalBugs := 0
 				daysOpen := 0
 				totalDaysOpen := 0
@@ -98,14 +96,13 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 							if *l.Name == "bug" {
 								c.Printf("Syncing issue <lightCyan>%d</> (<cyan>%s</>) to project.. ", issue.GetNumber(), issueNode)
 								iid, err := p.AddToProject(pid, issueNode)
-								totalBugs++
-								daysOpen = int(time.Now().Sub(issue.GetCreatedAt()) / (time.Hour * 24))
-								totalDaysOpen = totalDaysOpen + daysOpen
 								if err != nil {
 									c.Printf("\n\n <red>ERROR!!</> %s", err)
 									continue
 								}
 								c.Printf("<magenta>%s</>", *iid)
+
+								totalBugs++
 								daysOpen = int(time.Now().Sub(issue.GetCreatedAt()) / (time.Hour * 24))
 								totalDaysOpen = totalDaysOpen + daysOpen
 
@@ -168,6 +165,7 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 					// no PR review decision for Issues, removed code
 				}
 				// output
+				//totalDaysOpen is for ALL bugs, so this will not match the metrics that only track last 365 days.
 				c.Printf("Total of %d waiting for on average %d days\n", totalBugs, totalDaysOpen/totalBugs)
 			}
 
