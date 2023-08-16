@@ -2,16 +2,10 @@ package gh
 
 import (
 	"fmt"
-	"sort"
-	"strconv"
-
 	"github.com/google/go-github/v45/github"
 	"github.com/katbyte/ghp-pr-sync/lib/clog"
+	"sort"
 )
-
-func (r Repo) IssueURL(issue int) string {
-	return "https://github.com/" + r.Owner + "/" + r.Name + "/issues/" + strconv.Itoa(issue)
-}
 
 func (r Repo) ListAllIssues(state string, cb func([]*github.Issue, *github.Response) error) error {
 	client, ctx := r.NewClient()
