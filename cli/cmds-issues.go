@@ -166,7 +166,7 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 				}
 				// output
 				//totalDaysOpen is for ALL bugs, so this will not match the metrics that only track last 365 days.
-				c.Printf("Total of %d waiting for on average %d days\n", totalBugs, totalDaysOpen/totalBugs)
+				c.Printf("Total of %d bugs for on average %d days\n", totalBugs, totalDaysOpen/totalBugs)
 			}
 
 			return nil
