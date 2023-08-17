@@ -9,8 +9,7 @@ import (
 
 func (r Repo) ListAllIssues(state string, cb func([]*github.Issue, *github.Response) error) error {
 	client, ctx := r.NewClient()
-
-	opts := &github.IssueListOptions{
+	opts := &github.IssueListByRepoOptions{
 		State: state,
 		ListOptions: github.ListOptions{
 			Page:    1,
@@ -20,7 +19,7 @@ func (r Repo) ListAllIssues(state string, cb func([]*github.Issue, *github.Respo
 
 	for {
 		clog.Log.Debugf("Listing all Issues for %s/%s (Page %d)...", r.Owner, r.Name, opts.ListOptions.Page)
-		issues, resp, err := client.Issues.List(ctx, true, opts)
+		issues, resp, err := client.Issues.ListByRepo(ctx, r.Owner, r.Name, opts)
 		if err != nil {
 			return fmt.Errorf("unable to list Issues for %s/%s (Page %d): %w", r.Owner, r.Name, opts.ListOptions.Page, err)
 		}
@@ -54,7 +53,17 @@ func (r Repo) GetAllIssues(state string) (*[]github.Issue, error) {
 				continue
 			}
 
-			allIssues = append(allIssues, *i)
+			//return only issues and not pull requests. See note
+			/**
+			Note: As far as the GitHub API is concerned, every pull request is an issue, but not every issue is a pull request.
+			Some endpoints, events, and webhooks may also return pull requests via this struct.
+			If PullRequestLinks is nil, this is an issue, and if PullRequestLinks is not nil, this is a pull request.
+			The IsPullRequest helper method can be used to check that.
+			*/
+			if i.IsPullRequest() == false {
+				allIssues = append(allIssues, *i)
+			}
+			// else, its a pull request and I don't want it appended
 		}
 
 		return nil
