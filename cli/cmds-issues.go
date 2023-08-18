@@ -67,61 +67,60 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 
 			// For each repo get all issues and add to project only bugs
 			//Can't add all issues with current limit on number of issues on a project
-			for _, repo := range f.Repos {
 
-				r := gh.NewRepo(f.Owner, repo, f.Token)
+			r := gh.NewRepo(f.Owner, f.Repo, f.Token)
 
-				// get all issues
-				c.Printf("Retrieving all issues for <white>%s</>/<cyan>%s</>...", r.Owner, r.Name)
-				issues, err := r.GetAllIssues("open")
+			// get all issues
+			c.Printf("Retrieving all issues for <white>%s</>/<cyan>%s</>...", r.Owner, r.Name)
+			issues, err := r.GetAllIssues("open")
 
-				if err != nil {
-					c.Printf("\n\n <red>ERROR!!</> %s\n", err)
-					return nil
-				}
-				c.Printf(" found <yellow>%d</>\n", len(*issues))
+			if err != nil {
+				c.Printf("\n\n <red>ERROR!!</> %s\n", err)
+				return nil
+			}
+			c.Printf(" found <yellow>%d</>\n", len(*issues))
 
-				//Currently not interested in the username of the author for issues, so I removed the code for now
-				// TODO calculate days open for 365 average (number of bugs from last 365/number of days open for last 365 days)
-				totalBugs := 0
-				daysOpen := 0
-				totalDaysOpen := 0
+			//Currently not interested in the username of the author for issues, so I removed the code for now
+			// TODO calculate days open for 365 average (number of bugs from last 365/number of days open for last 365 days)
+			totalBugs := 0
+			daysOpen := 0
+			totalDaysOpen := 0
 
-				for _, issue := range *issues {
-					issueNode := *issue.NodeID
+			for _, issue := range *issues {
+				issueNode := *issue.NodeID
 
-					//only put issues labeled bug into the project, therefore graphyQL is inside this loop
-					for _, l := range issue.Labels {
-						if l != nil {
-							if *l.Name == "bug" {
-								c.Printf("Syncing issue <lightCyan>%d</> (<cyan>%s</>) to project.. ", issue.GetNumber(), issueNode)
-								iid, err := p.AddToProject(pid, issueNode)
-								if err != nil {
-									c.Printf("\n\n <red>ERROR!!</> %s", err)
-									continue
-								}
-								c.Printf("<magenta>%s</>", *iid)
+				//only put issues labeled bug into the project, therefore graphyQL is inside this loop
+				for _, l := range issue.Labels {
+					if l != nil {
+						if *l.Name == "bug" {
+							c.Printf("Syncing issue <lightCyan>%d</> (<cyan>%s</>) to project.. ", issue.GetNumber(), issueNode)
+							iid, err := p.AddToProject(pid, issueNode)
+							if err != nil {
+								c.Printf("\n\n <red>ERROR!!</> %s", err)
+								continue
+							}
+							c.Printf("<magenta>%s</>", *iid)
 
-								totalBugs++
-								daysOpen = int(time.Now().Sub(issue.GetCreatedAt()) / (time.Hour * 24))
-								totalDaysOpen = totalDaysOpen + daysOpen
+							totalBugs++
+							daysOpen = int(time.Now().Sub(issue.GetCreatedAt()) / (time.Hour * 24))
+							totalDaysOpen = totalDaysOpen + daysOpen
 
-								//statuses and waiting days code removed
+							//statuses and waiting days code removed
 
-								c.Printf("  open %d days\n", daysOpen)
-
-								q := `query=
+							c.Printf("  open %d days\n", daysOpen)
+							//TODO issue with set_issue, number vs text vs int vs String
+							q := `query=
 								mutation (
 								  $project:ID!, $item:ID!, 
-								  $pr_field:ID!, $pr_value:String!, 
+								  $issue_field:ID!, $issue_value:String!, 
 								  $daysOpen_field:ID!, $daysOpen_value:Float!, 
 								) {
-								  set_pr: updateProjectV2ItemFieldValue(input: {
+								  set_issue: updateProjectV2ItemFieldValue(input: {
 									projectId: $project
 									itemId: $item
-									fieldId: $pr_field
+									fieldId: $issue_field
 									value: { 
-									  text: $pr_value
+									  text: $issue_value
 									}
 								  }) {
 									projectV2Item {
@@ -143,31 +142,31 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 								}
 				`
 
-								p := [][]string{
-									{"-f", "project=" + pid},
-									{"-f", "item=" + *iid},
-									{"-f", "pr_field=" + fields["PR#"]},
-									{"-f", fmt.Sprintf("pr_value=%d", *issue.Number)},
-									{"-f", "daysOpen_field=" + fields["Open Days"]},
-									{"-F", fmt.Sprintf("daysOpen_value=%d", daysOpen)},
-								}
-
-								out, err := r.GraphQLQuery(q, p)
-								if err != nil {
-									c.Printf("\n\n <red>ERROR!!</> %s\n%s", err, *out)
-									return nil
-								}
-
-								c.Printf("\n")
+							p := [][]string{
+								{"-f", "project=" + pid},
+								{"-f", "item=" + *iid},
+								{"-f", "issue_field=" + fields["Issue#"]},
+								{"-f", fmt.Sprintf("issue_value=%d", *issue.Number)},
+								{"-f", "daysOpen_field=" + fields["Open Days"]},
+								{"-F", fmt.Sprintf("daysOpen_value=%d", daysOpen)},
 							}
+
+							out, err := r.GraphQLQuery(q, p)
+							if err != nil {
+								c.Printf("\n\n <red>ERROR!!</> %s\n%s", err, *out)
+								return nil
+							}
+
+							c.Printf("\n")
 						}
 					}
-					// no PR review decision for Issues, removed code
 				}
-				// output
-				//totalDaysOpen is for ALL bugs, so this will not match the metrics that only track last 365 days.
-				c.Printf("Total of %d bugs for on average %d days\n", totalBugs, totalDaysOpen/totalBugs)
+				// no PR review decision for Issues, removed code
 			}
+			// output
+			//totalDaysOpen is for ALL bugs, so this will not match the metrics that only track last 365 days.
+			//TODO check for 0, because if there are 0 bugs this will cause a panic
+			c.Printf("Total of %d bugs for on average %d days\n", totalBugs, totalDaysOpen/totalBugs)
 
 			return nil
 		},
