@@ -165,8 +165,11 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 			}
 			// output
 			//totalDaysOpen is for ALL bugs, so this will not match the metrics that only track last 365 days.
-			//TODO check for 0, because if there are 0 bugs this will cause a panic
-			c.Printf("Total of %d bugs for on average %d days\n", totalBugs, totalDaysOpen/totalBugs)
+			if totalBugs > 0 {
+				c.Printf("Total of %d bugs for on average %d days\n", totalBugs, totalDaysOpen/totalBugs)
+			} else {
+				c.Printf("Total of 0 bugs\n")
+			}
 
 			return nil
 		},
