@@ -32,7 +32,6 @@ func configureFlagsIssues(root *cobra.Command) error {
 		"owner":          "GITHUB_OWNER",
 		"repo":           "GITHUB_REPO",           // todo rename this to repos
 		"project-number": "GITHUB_PROJECT_NUMBER", // will I need to add my own project number here?
-		"authors":        "GITHUB_AUTHORS",
 	}
 
 	for name, env := range m {
