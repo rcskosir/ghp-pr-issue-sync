@@ -81,7 +81,6 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 			c.Printf(" found <yellow>%d</>\n", len(*issues))
 
 			//Currently not interested in the username of the author for issues, so I removed the code for now
-			// TODO calculate days open for 365 average (number of bugs from last 365/number of days open for last 365 days)
 			totalBugs := 0
 			daysOpen := 0
 			totalDaysOpen := 0
@@ -108,7 +107,6 @@ func MakeIssues(cmdName string) (*cobra.Command, error) {
 							//statuses and waiting days code removed
 
 							c.Printf("  open %d days\n", daysOpen)
-							//TODO issue with set_issue, number vs text vs int vs String
 							q := `query=
 								mutation (
 								  $project:ID!, $item:ID!, 
