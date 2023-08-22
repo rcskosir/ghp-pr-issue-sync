@@ -10,16 +10,9 @@ on:
       - '**.go'
       - 'vendor/**'
       - '.github/workflows/**'
-  issues:
-    types: ['labeled'] #may need more or other events tht trigger
-    paths:
-      - '.github/**'
-      - '**.go'
-      - 'vendor/**'
-      - '.github/workflows/**'
 
 jobs:
-  build:
+  builkd:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
