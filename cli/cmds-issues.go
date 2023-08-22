@@ -25,7 +25,7 @@ func ValidateParamsIssues(params []string) func(cmd *cobra.Command, args []strin
 	}
 }
 
-func MakeIssues(cmdName string) (*cobra.Command, error) {
+func Make(cmdName string) (*cobra.Command, error) {
 	root := &cobra.Command{
 		Use:           cmdName + " [command]",
 		Short:         cmdName + "is a small utility to TODO",
