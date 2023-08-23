@@ -55,7 +55,7 @@ func Make(cmdName string) (*cobra.Command, error) {
 	}
 	root.AddCommand(issues)
 
-	if err := configureFlags(root); err != nil {
+	if err := ConfigureFlags(root); err != nil {
 		return nil, fmt.Errorf("unable to configure flags: %w", err)
 	}
 

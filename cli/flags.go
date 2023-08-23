@@ -17,7 +17,7 @@ type FlagData struct {
 	Authors       []string
 }
 
-func configureFlags(root *cobra.Command) error {
+func ConfigureFlags(root *cobra.Command) error {
 	flags := FlagData{}
 	pflags := root.PersistentFlags()
 
