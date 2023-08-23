@@ -23,18 +23,6 @@ func main() {
 
 		os.Exit(1)
 	}
-	cmd, err = cli.MakeIssues(cmdName)
-	if err != nil {
-		clog.Log.Errorf(c.Sprintf("<red>%s: building cmd</> %v", cmdName, err))
-
-		os.Exit(1)
-	}
-
-	if err := cmd.Execute(); err != nil {
-		clog.Log.Errorf(c.Sprintf("<red>%s:</> %v", cmdName, err))
-
-		os.Exit(1)
-	}
 
 	os.Exit(0)
 }
