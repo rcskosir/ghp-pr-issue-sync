@@ -48,7 +48,7 @@ func Make(cmdName string) (*cobra.Command, error) {
 		Use:           "issues",
 		Args:          cobra.NoArgs,
 		SilenceErrors: true,
-		PreRunE:       ValidateParams([]string{"token", "repos", "cache"}),
+		PreRunE:       ValidateParams([]string{"token", "org", "repo", "project-number"}),
 		RunE:          CmdIssues,
 	})
 	// TODO validate the Params and args
@@ -56,11 +56,11 @@ func Make(cmdName string) (*cobra.Command, error) {
 		Use:           "prs",
 		Args:          cobra.NoArgs,
 		SilenceErrors: true,
-		PreRunE:       ValidateParams([]string{"token", "repos", "cache"}),
+		PreRunE:       ValidateParams([]string{"token", "org", "repo", "project-number"}),
 		RunE:          CmdPRs,
 	})
 
-	if err := ConfigureFlags(root); err != nil {
+	if err := configureFlags(root); err != nil {
 		return nil, fmt.Errorf("unable to configure flags: %w", err)
 	}
 

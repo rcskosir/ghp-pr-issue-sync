@@ -14,7 +14,7 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 
 	// For each repo get all issues and add to project only bugs
 	//Can't add all issues with current limit on number of issues on a project
-	f := GetFlagsIssues()
+	f := GetFlags()
 	p := gh.NewProject(f.Owner, f.ProjectNumber, f.Token)
 
 	c.Printf("Looking up project details for <green>%s</>/<lightGreen>%d</>...\n", f.Org, f.ProjectNumber)
@@ -41,7 +41,8 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 		}
 	}
 	fmt.Println()
-	r := gh.NewRepo(f.Owner, f.Repo, f.Token)
+	//For issues, only 1 repo will be passed so below will only use f.Repos[0]
+	r := gh.NewRepo(f.Owner, f.Repos[0], f.Token)
 
 	// get all issues
 	c.Printf("Retrieving all issues for <white>%s</>/<cyan>%s</>...", r.Owner, r.Name)
