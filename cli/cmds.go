@@ -43,7 +43,6 @@ func Make(cmdName string) (*cobra.Command, error) {
 			fmt.Println(cmdName + " v" + version.Version + "-" + version.GitCommit)
 		},
 	})
-	// TODO validate the Params and args
 	root.AddCommand(&cobra.Command{
 		Use:           "issues",
 		Args:          cobra.NoArgs,
@@ -51,7 +50,6 @@ func Make(cmdName string) (*cobra.Command, error) {
 		PreRunE:       ValidateParams([]string{"token", "org", "repo", "project-number"}),
 		RunE:          CmdIssues,
 	})
-	// TODO validate the Params and args
 	root.AddCommand(&cobra.Command{
 		Use:           "prs",
 		Args:          cobra.NoArgs,
