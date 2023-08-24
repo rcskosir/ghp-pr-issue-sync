@@ -1,35 +1,20 @@
-package subcmds
+package cli
 
 import (
 	"fmt"
-	"github.com/katbyte/ghp-pr-sync/cli"
 	"time"
 
 	"github.com/katbyte/ghp-pr-sync/lib/gh"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
 	//nolint:misspell
 	c "github.com/gookit/color"
 )
 
-func ValidateParamsIssues(params []string) func(cmd *cobra.Command, args []string) error {
-	return func(cmd *cobra.Command, args []string) error {
-		for _, p := range params {
-			if viper.GetString(p) == "" {
-				return fmt.Errorf(p + " parameter can't be empty")
-			}
-		}
-
-		return nil
-	}
-}
-
-func Issues() error {
+func CmdIssues(_ *cobra.Command, _ []string) error {
 
 	// For each repo get all issues and add to project only bugs
 	//Can't add all issues with current limit on number of issues on a project
-	f := cli.GetFlagsIssues()
+	f := GetFlagsIssues()
 	p := gh.NewProject(f.Owner, f.ProjectNumber, f.Token)
 
 	c.Printf("Looking up project details for <green>%s</>/<lightGreen>%d</>...\n", f.Org, f.ProjectNumber)
@@ -44,7 +29,6 @@ func Issues() error {
 	statuses := map[string]string{}
 	fields := map[string]string{}
 
-	// TODO write GetProjectFields
 	for _, f := range project.Data.Organization.ProjectV2.Fields.Nodes {
 		fields[f.Name] = f.Id
 		c.Printf("    <lightBlue>%s</> <> <lightCyan>%s</>\n", f.Name, f.Id)

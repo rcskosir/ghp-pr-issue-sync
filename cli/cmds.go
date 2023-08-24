@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"github.com/katbyte/ghp-pr-sync/cli/subcmds"
 	"github.com/katbyte/ghp-pr-sync/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -44,16 +43,22 @@ func Make(cmdName string) (*cobra.Command, error) {
 			fmt.Println(cmdName + " v" + version.Version + "-" + version.GitCommit)
 		},
 	})
-	var issues = &cobra.Command{
-		Use:   "sync issues",
-		Short: "Syncs Issues to the GitHub Project Board",
-		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			res := subcmds.Issues()
-			fmt.Println(res)
-		},
-	}
-	root.AddCommand(issues)
+	// TODO validate the Params and args
+	root.AddCommand(&cobra.Command{
+		Use:           "issues",
+		Args:          cobra.NoArgs,
+		SilenceErrors: true,
+		PreRunE:       ValidateParams([]string{"token", "repos", "cache"}),
+		RunE:          CmdIssues,
+	})
+	// TODO validate the Params and args
+	root.AddCommand(&cobra.Command{
+		Use:           "prs",
+		Args:          cobra.NoArgs,
+		SilenceErrors: true,
+		PreRunE:       ValidateParams([]string{"token", "repos", "cache"}),
+		RunE:          CmdPRs,
+	})
 
 	if err := ConfigureFlags(root); err != nil {
 		return nil, fmt.Errorf("unable to configure flags: %w", err)
