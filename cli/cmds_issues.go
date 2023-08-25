@@ -54,6 +54,10 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 	}
 	c.Printf(" found <yellow>%d</>\n", len(*issues))
 
+	// TODO filter based on label flag, instead of hardcoding bug below
+	//filters := f.GetFilters()
+	//fmt.Println("Filtering:")
+
 	//Currently not interested in the username of the author for issues, so I removed the code for now
 	totalBugs := 0
 	daysOpen := 0
