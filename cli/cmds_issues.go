@@ -54,7 +54,6 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 	}
 	c.Printf(" found <yellow>%d</>\n", len(*issues))
 
-	// TODO filter based on label flag, instead of hardcoding bug below
 	filters := f.GetFilters()
 	fmt.Println("Filtering:")
 

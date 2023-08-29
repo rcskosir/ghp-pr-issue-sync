@@ -46,7 +46,7 @@ func GetFilterForLabels(labels []string) *Filter {
 				labelMap[l.GetName()] = true
 			}
 
-			c.Printf("    labels all: ")
+			c.Printf("    labels: ")
 
 			andFail := false
 
