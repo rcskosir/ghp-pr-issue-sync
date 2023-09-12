@@ -35,11 +35,11 @@ func GetFilterForLabels(labels []string) *Filter {
 		filterLabelMap[strings.TrimPrefix(l, "-")] = strings.HasPrefix(l, "-")
 	}
 
-	c.Printf("  labels %s:  <blue>%s</>\n", "and", strings.Join(labels, "</>,<blue>"))
+	c.Printf("  labels:  <blue>%s</>\n", strings.Join(labels, "</>,<blue>"))
 
 	//	found := false
 	return &Filter{
-		Name: "labels " + "and",
+		Name: "labels" + "and",
 		Issue: func(issue github.Issue) (bool, error) {
 			labelMap := map[string]bool{}
 			for _, l := range issue.Labels {
