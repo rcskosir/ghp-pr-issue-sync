@@ -23,7 +23,7 @@ Adds issues labeled bug to a GitHub project board and fill the Issue # and Open 
 
 - Add issues labeled bug based on the organization name, repo name, and project number of the board to add it to:
 ```
-go run main.go -o GITHUB_ORG -p GITHUB_PROJECT_NUMBER -r GITHUB_REPO -t GITHUB_TOKEN
+go run main.go issues -o GITHUB_ORG -p GITHUB_PROJECT_NUMBER -r GITHUB_REPO -t GITHUB_TOKEN -l bug
 ```
 
 ## Notes
