@@ -53,17 +53,10 @@ func (r Repo) GetAllIssues(state string) (*[]github.Issue, error) {
 				continue
 			}
 
-			//return only issues and not pull requests. See note
-			/**
-			Note: As far as the GitHub API is concerned, every pull request is an issue, but not every issue is a pull request.
-			Some endpoints, events, and webhooks may also return pull requests via this struct.
-			If PullRequestLinks is nil, this is an issue, and if PullRequestLinks is not nil, this is a pull request.
-			The IsPullRequest helper method can be used to check that.
-			*/
+			//return only issues and not pull requests.  All prs are issues, but not all issues are PRs
 			if i.IsPullRequest() == false {
 				allIssues = append(allIssues, *i)
 			}
-			// else, its a pull request and I don't want it appended
 		}
 
 		return nil

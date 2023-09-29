@@ -37,7 +37,7 @@ func GetFilterForLabels(labels []string) *Filter {
 
 	c.Printf("  labels:  <blue>%s</>\n", strings.Join(labels, "</>,<blue>"))
 
-	//	found := false
+	// found := false
 	return &Filter{
 		Name: "labels" + "and",
 		Issue: func(issue github.Issue) (bool, error) {

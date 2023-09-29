@@ -28,8 +28,7 @@ func Make(cmdName string) (*cobra.Command, error) {
 		SilenceErrors: true,
 		PreRunE:       ValidateParams([]string{"token", "org", "repo", "project-number"}),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// call subcommand for PRs, and subcommand for issues
-			fmt.Println("Error: must also specify a resource of prs or issues")
+			fmt.Println("USAGE: gh-pr-syc [issues|prs] katbyte/ghp-pr-sync project")
 
 			return nil
 		},

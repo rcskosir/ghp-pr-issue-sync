@@ -72,75 +72,77 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 			if err != nil {
 				return fmt.Errorf("ERROR: running filter %s: %w", f.Name, err)
 			}
-			if match {
-				c.Printf("Syncing issue <lightCyan>%d</> (<cyan>%s</>) to project.. ", issue.GetNumber(), issueNode)
-				iid, err := p.AddToProject(pid, issueNode)
-				if err != nil {
-					c.Printf("\n\n <red>ERROR!!</> %s", err)
-					continue
-				}
-				c.Printf("<magenta>%s</>", *iid)
+			if !match {
+				continue
+			}
+			c.Printf("Syncing issue <lightCyan>%d</> (<cyan>%s</>) to project.. ", issue.GetNumber(), issueNode)
+			iid, err := p.AddToProject(pid, issueNode)
+			if err != nil {
+				c.Printf("\n\n <red>ERROR!!</> %s", err)
+				continue
+			}
+			c.Printf("<magenta>%s</>", *iid)
 
-				totalIssues++
-				daysOpen = int(time.Now().Sub(issue.GetCreatedAt()) / (time.Hour * 24))
-				totalDaysOpen = totalDaysOpen + daysOpen
+			totalIssues++
+			daysOpen = int(time.Now().Sub(issue.GetCreatedAt()) / (time.Hour * 24))
+			totalDaysOpen = totalDaysOpen + daysOpen
 
-				//statuses and waiting days code removed
+			//statuses and waiting days code removed
 
-				c.Printf("  open %d days\n", daysOpen)
-				q := `query=
-								mutation (
-								  $project:ID!, $item:ID!, 
-								  $issue_field:ID!, $issue_value:String!, 
-								  $daysOpen_field:ID!, $daysOpen_value:Float!, 
-								) {
-								  set_issue: updateProjectV2ItemFieldValue(input: {
-									projectId: $project
-									itemId: $item
-									fieldId: $issue_field
-									value: { 
-									  text: $issue_value
-									}
-								  }) {
-									projectV2Item {
-									  id
-									  }
-								  }
-								  set_dopen: updateProjectV2ItemFieldValue(input: {
-									projectId: $project
-									itemId: $item
-									fieldId: $daysOpen_field
-									value: { 
-									  number: $daysOpen_value
-									}
-								  }) {
-									projectV2Item {
-									  id
-									  }
-								  }
-								}
+			c.Printf("  open %d days\n", daysOpen)
+			q := `query=
+					mutation (
+					  $project:ID!, $item:ID!, 
+					  $issue_field:ID!, $issue_value:String!, 
+					  $daysOpen_field:ID!, $daysOpen_value:Float!, 
+					) {
+					  set_issue: updateProjectV2ItemFieldValue(input: {
+						projectId: $project
+						itemId: $item
+						fieldId: $issue_field
+						value: { 
+						  text: $issue_value
+						}
+					  }) {
+						projectV2Item {
+						  id
+						  }
+					  }
+					  set_dopen: updateProjectV2ItemFieldValue(input: {
+						projectId: $project
+						itemId: $item
+						fieldId: $daysOpen_field
+						value: { 
+						  number: $daysOpen_value
+						}
+					  }) {
+						projectV2Item {
+						  id
+						  }
+					  }
+					}
 				`
 
-				p := [][]string{
-					{"-f", "project=" + pid},
-					{"-f", "item=" + *iid},
-					{"-f", "issue_field=" + fields["Issue#"]},
-					{"-f", fmt.Sprintf("issue_value=%d", *issue.Number)},
-					{"-f", "daysOpen_field=" + fields["Open Days"]},
-					{"-F", fmt.Sprintf("daysOpen_value=%d", daysOpen)},
-				}
-
-				out, err := r.GraphQLQuery(q, p)
-				if err != nil {
-					c.Printf("\n\n <red>ERROR!!</> %s\n%s", err, *out)
-					return nil
-				}
-
-				c.Printf("\n")
+			p := [][]string{
+				{"-f", "project=" + pid},
+				{"-f", "item=" + *iid},
+				{"-f", "issue_field=" + fields["Issue#"]},
+				{"-f", fmt.Sprintf("issue_value=%d", *issue.Number)},
+				{"-f", "daysOpen_field=" + fields["Open Days"]},
+				{"-F", fmt.Sprintf("daysOpen_value=%d", daysOpen)},
 			}
+
+			out, err := r.GraphQLQuery(q, p)
+			if err != nil {
+				c.Printf("\n\n <red>ERROR!!</> %s\n%s", err, *out)
+				return nil
+			}
+
+			c.Printf("\n")
 		}
 		// no PR review decision for Issues, removed code
 	}
+
 	// output
 	//totalDaysOpen is for ALL bugs, so this will not match the metrics that only track last 365 days.
 	if totalIssues > 0 {
