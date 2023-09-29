@@ -60,8 +60,8 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 
 		//Currently not interested in the username of the author for issues, so I removed the code for now
 		totalIssues := 0
-		daysOpen := 0
-		totalDaysOpen := 0
+		daysSinceCreation := 0
+		collectiveDaysSinceCreation := 0
 
 		for _, issue := range *issues {
 			issueNode := *issue.NodeID
@@ -85,17 +85,17 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 				c.Printf("<magenta>%s</>", *iid)
 
 				totalIssues++
-				daysOpen = int(time.Now().Sub(issue.GetCreatedAt()) / (time.Hour * 24))
-				totalDaysOpen = totalDaysOpen + daysOpen
+				daysSinceCreation = int(time.Now().Sub(issue.GetCreatedAt()) / (time.Hour * 24))
+				collectiveDaysSinceCreation = collectiveDaysSinceCreation + daysSinceCreation
 
 				//statuses and waiting days code removed
 
-				c.Printf("  open %d days\n", daysOpen)
+				c.Printf("  open %d days\n", daysSinceCreation)
 				q := `query=
 					mutation (
 					  $project:ID!, $item:ID!, 
 					  $issue_field:ID!, $issue_value:String!, 
-					  $daysOpen_field:ID!, $daysOpen_value:Float!, 
+					  $daysSinceCreation_field:ID!, $daysSinceCreation_value:Float!, 
 					) {
 					  set_issue: updateProjectV2ItemFieldValue(input: {
 						projectId: $project
@@ -112,9 +112,9 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 					  set_dopen: updateProjectV2ItemFieldValue(input: {
 						projectId: $project
 						itemId: $item
-						fieldId: $daysOpen_field
+						fieldId: $daysSinceCreation_field
 						value: { 
-						  number: $daysOpen_value
+						  number: $daysSinceCreation_value
 						}
 					  }) {
 						projectV2Item {
@@ -129,8 +129,8 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 					{"-f", "item=" + *iid},
 					{"-f", "issue_field=" + fields["Issue#"]},
 					{"-f", fmt.Sprintf("issue_value=%d", *issue.Number)},
-					{"-f", "daysOpen_field=" + fields["Open Days"]},
-					{"-F", fmt.Sprintf("daysOpen_value=%d", daysOpen)},
+					{"-f", "daysSinceCreation_field=" + fields["Age"]},
+					{"-F", fmt.Sprintf("daysSinceCreation_value=%d", daysSinceCreation)},
 				}
 
 				out, err := r.GraphQLQuery(q, p)
@@ -147,7 +147,7 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 		// output
 		//totalDaysOpen is for ALL bugs, so this will not match the metrics that only track last 365 days.
 		if totalIssues > 0 {
-			c.Printf("Total of %d bugs for on average %d days\n", totalIssues, totalDaysOpen/totalIssues)
+			c.Printf("Total of %d bugs for on average %d days\n", totalIssues, collectiveDaysSinceCreation/totalIssues)
 		} else {
 			c.Printf("Total of 0 issues\n")
 		}
