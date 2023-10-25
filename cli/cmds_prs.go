@@ -9,12 +9,12 @@ import (
 	"github.com/google/go-github/v45/github"
 	"github.com/katbyte/ghp-pr-sync/lib/gh"
 	"github.com/spf13/cobra"
+
 	//nolint:misspell
 	c "github.com/gookit/color"
 )
 
 func CmdPRs(_ *cobra.Command, _ []string) error {
-
 	f := GetFlags()
 	p := gh.NewProject(f.Owner, f.ProjectNumber, f.Token)
 
@@ -46,7 +46,6 @@ func CmdPRs(_ *cobra.Command, _ []string) error {
 
 	// for reach repom get all prs, and add to project
 	for _, repo := range f.Repos {
-
 		// todo support repos that are owner/repo by overriding the param one
 		r := gh.NewRepo(f.Owner, repo, f.Token)
 
@@ -113,7 +112,7 @@ func CmdPRs(_ *cobra.Command, _ []string) error {
 				continue
 			}
 
-			daysOpen := int(time.Now().Sub(pr.GetCreatedAt()) / (time.Hour * 24))
+			daysOpen := int(time.Since(pr.GetCreatedAt()) / (time.Hour * 24))
 			daysWaiting := 0
 
 			status := ""
@@ -162,11 +161,10 @@ func CmdPRs(_ *cobra.Command, _ []string) error {
 					c.Printf(" with <magenta>%d</> events\n", len(*events))
 
 					for _, t := range *events {
-
 						// check for waiting response label removed
 						if t.GetEvent() == "unlabeled" {
 							if t.Label.GetName() == "waiting-response" {
-								daysWaiting = int(time.Now().Sub(t.GetCreatedAt()) / (time.Hour * 24))
+								daysWaiting = int(time.Since(t.GetCreatedAt()) / (time.Hour * 24))
 								break
 							}
 						}
@@ -174,7 +172,7 @@ func CmdPRs(_ *cobra.Command, _ []string) error {
 						// check for blocked milestone removal
 						if t.GetEvent() == "unlabeled" {
 							if t.Milestone.GetTitle() == "Blocked" {
-								daysWaiting = int(time.Now().Sub(t.GetCreatedAt()) / (time.Hour * 24))
+								daysWaiting = int(time.Since(t.GetCreatedAt()) / (time.Hour * 24))
 								break
 							}
 						}
@@ -297,5 +295,4 @@ func CmdPRs(_ *cobra.Command, _ []string) error {
 	}
 
 	return nil
-
 }

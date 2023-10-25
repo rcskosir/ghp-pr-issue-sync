@@ -59,7 +59,6 @@ type ProjectDetails struct {
 }
 
 func (p Project) GetProjectDetails() (*ProjectDetails, error) {
-
 	// nolint: misspell
 	q := `query=
         query($org: String!, $number: Int!) {
@@ -101,7 +100,6 @@ func (p Project) GetProjectDetails() (*ProjectDetails, error) {
 }
 
 func (t Token) AddToProject(projectID, nodeID string) (*string, error) {
-
 	q := `query=
         mutation($project:ID!, $pr:ID!) {
           addProjectV2ItemById(input: {projectId: $project, contentId: $pr}) {
@@ -133,7 +131,6 @@ type PRApproval struct {
 }
 
 func (r Repo) PRReviewDecision(pr int) (*string, error) {
-
 	q := `query=
         query($owner: String!, $repo: String!, $pr: Int!) {
             repository(name: $repo, owner: $owner) {

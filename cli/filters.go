@@ -2,9 +2,10 @@ package cli
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/google/go-github/v45/github"
 	c "github.com/gookit/color" //nolint:misspell
-	"strings"
 )
 
 type Filter struct {
@@ -70,7 +71,6 @@ func GetFilterForLabels(labels []string) *Filter {
 			fmt.Println()
 
 			return !andFail, nil
-
 		},
 	}
 }

@@ -21,7 +21,6 @@ linters:
     - ineffassign
     - nakedret
     - misspell
-    - nolintlint
     - exportloopref
     - staticcheck
     - structcheck

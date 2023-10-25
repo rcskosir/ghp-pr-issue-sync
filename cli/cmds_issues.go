@@ -6,14 +6,14 @@ import (
 
 	"github.com/katbyte/ghp-pr-sync/lib/gh"
 	"github.com/spf13/cobra"
+
 	//nolint:misspell
 	c "github.com/gookit/color"
 )
 
 func CmdIssues(_ *cobra.Command, _ []string) error {
-
 	// For each repo get all issues and add to project only bugs
-	//Can't add all issues with current limit on number of issues on a project
+	// Can't add all issues with current limit on number of issues on a project
 	f := GetFlags()
 	p := gh.NewProject(f.Owner, f.ProjectNumber, f.Token)
 
@@ -42,7 +42,7 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 	}
 	fmt.Println()
 	for _, repo := range f.Repos {
-		//For issues, only 1 repo will be passed so below will only use f.Repos[0]
+		// For issues, only 1 repo will be passed so below will only use f.Repos[0]
 		r := gh.NewRepo(f.Owner, repo, f.Token)
 
 		// get all issues
@@ -58,7 +58,7 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 		filters := f.GetFilters()
 		fmt.Println("Filtering:")
 
-		//Currently not interested in the username of the author for issues, so I removed the code for now
+		// Currently not interested in the username of the author for issues, so I removed the code for now
 		totalIssues := 0
 		daysSinceCreation := 0
 		collectiveDaysSinceCreation := 0
@@ -66,7 +66,7 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 		for _, issue := range *issues {
 			issueNode := *issue.NodeID
 
-			//only put issues labeled whatever flag is passed (bug, etc) into the project, therefore graphyQL is inside this loop
+			// only put issues labelled whatever flag is passed (bug, etc) into the project, therefore graphyQL is inside this loop
 
 			for _, f := range filters {
 				match, err := f.Issue(issue)
@@ -85,10 +85,10 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 				c.Printf("<magenta>%s</>", *iid)
 
 				totalIssues++
-				daysSinceCreation = int(time.Now().Sub(issue.GetCreatedAt()) / (time.Hour * 24))
-				collectiveDaysSinceCreation = collectiveDaysSinceCreation + daysSinceCreation
+				daysSinceCreation = int(time.Since(issue.GetCreatedAt()) / (time.Hour * 24))
+				collectiveDaysSinceCreation += daysSinceCreation
 
-				//statuses and waiting days code removed
+				// statuses and waiting days code removed
 
 				c.Printf("  open %d days\n", daysSinceCreation)
 				q := `query=
@@ -145,7 +145,7 @@ func CmdIssues(_ *cobra.Command, _ []string) error {
 		}
 
 		// output
-		//totalDaysOpen is for ALL bugs, so this will not match the metrics that only track last 365 days.
+		// totalDaysOpen is for ALL bugs, so this will not match the metrics that only track last 365 days.
 		if totalIssues > 0 {
 			c.Printf("Total of %d bugs for on average %d days\n", totalIssues, collectiveDaysSinceCreation/totalIssues)
 		} else {

@@ -2,9 +2,10 @@ package gh
 
 import (
 	"fmt"
+	"sort"
+
 	"github.com/google/go-github/v45/github"
 	"github.com/katbyte/ghp-pr-sync/lib/clog"
-	"sort"
 )
 
 func (r Repo) ListAllIssues(state string, cb func([]*github.Issue, *github.Response) error) error {
@@ -53,8 +54,8 @@ func (r Repo) GetAllIssues(state string) (*[]github.Issue, error) {
 				continue
 			}
 
-			//return only issues and not pull requests.  All prs are issues, but not all issues are PRs
-			if i.IsPullRequest() == false {
+			// return only issues and not pull requests.  All prs are issues, but not all issues are PRs
+			if !i.IsPullRequest() {
 				allIssues = append(allIssues, *i)
 			}
 		}

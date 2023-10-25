@@ -2,10 +2,10 @@ package cli
 
 import (
 	"fmt"
+
 	"github.com/katbyte/ghp-pr-sync/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	//nolint:misspell
 )
 
 func ValidateParams(params []string) func(cmd *cobra.Command, args []string) error {
