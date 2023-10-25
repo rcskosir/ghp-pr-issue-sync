@@ -7,6 +7,7 @@ services:
     environment:
       - "TZ=America/Vancouver"
       - "SYNC_CRON=0 0,3,6,9,12,15,18,21 * * *"
+      - "SYNC_CMD=prs|issues"
       - "GITHUB_TOKEN="
       - "GITHUB_ORG=hashicorp"
       - "GITHUB_REPO=terraform-provider-azurerm"

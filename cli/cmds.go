@@ -28,7 +28,7 @@ func Make(cmdName string) (*cobra.Command, error) {
 		SilenceErrors: true,
 		PreRunE:       ValidateParams([]string{"token", "org", "repo", "project-number"}),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("USAGE: gh-pr-syc [issues|prs] katbyte/ghp-repo-sync project")
+			fmt.Println("USAGE: ghp-repo-syc [issues|prs] katbyte/ghp-repo-sync project")
 
 			return nil
 		},
