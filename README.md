@@ -1,4 +1,4 @@
-# ghp-pr-sync
+# ghp-repo-sync
 
 This is an application for dealing with GitHub Project Boards. This is intended to make sorting through issues and PRs in large repos faster and easier via the GitHub Project Board.
 
@@ -6,13 +6,13 @@ It can automatically add Issues or PRs to Project Boards based on the repo, orga
 
 When adding Issues to Project Boards with the Issue # and number of Days Open. 
 
-ghp-pr-sync is still a work in progress with more automation to come in future!
+ghp-repo-sync is still a work in progress with more automation to come in future!
 
 ## Installation
 
-To install ghp-pr-sync from the command line, you can run:
+To install ghp-repo-sync from the command line, you can run:
 
-`go install ghp-pr-sync`
+`go install ghp-repo-sync`
 
 ## Commands
 

@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/katbyte/ghp-pr-sync/version"
+	"github.com/katbyte/ghp-repo-sync/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -28,7 +28,7 @@ func Make(cmdName string) (*cobra.Command, error) {
 		SilenceErrors: true,
 		PreRunE:       ValidateParams([]string{"token", "org", "repo", "project-number"}),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("USAGE: gh-pr-syc [issues|prs] katbyte/ghp-pr-sync project")
+			fmt.Println("USAGE: gh-pr-syc [issues|prs] katbyte/ghp-repo-sync project")
 
 			return nil
 		},

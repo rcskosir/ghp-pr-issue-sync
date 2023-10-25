@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/google/go-github/v45/github"
-	common "github.com/katbyte/ghp-pr-sync/lib/chttp"
+	common "github.com/katbyte/ghp-repo-sync/lib/chttp"
 	"golang.org/x/oauth2"
 )
 
