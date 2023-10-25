@@ -15,6 +15,7 @@ type FlagData struct {
 	Repos         []string
 	ProjectNumber int
 	Authors       []string
+	Labels        []string
 }
 
 func configureFlags(root *cobra.Command) error {
@@ -27,6 +28,7 @@ func configureFlags(root *cobra.Command) error {
 	pflags.StringSliceVarP(&flags.Repos, "repo", "r", []string{}, "github repo name (GITHUB_REPO) or a set of repos `repo1,repo2`")
 	pflags.IntVarP(&flags.ProjectNumber, "project-number", "p", 0, "github project number (GITHUB_PROJECT_NUMBER)")
 	pflags.StringSliceVarP(&flags.Authors, "authors", "a", []string{}, "only sync prs by these authors. ie 'katbyte,author2,author3'")
+	pflags.StringSliceVarP(&flags.Labels, "labels", "l", []string{}, "filter that match any label conditions. ie 'label1,label2,-not-this-label'")
 
 	// binding map for viper/pflag -> env
 	m := map[string]string{
@@ -36,6 +38,7 @@ func configureFlags(root *cobra.Command) error {
 		"repo":           "GITHUB_REPO", // todo rename this to repos
 		"project-number": "GITHUB_PROJECT_NUMBER",
 		"authors":        "GITHUB_AUTHORS",
+		"labels":         "",
 	}
 
 	for name, env := range m {
@@ -77,5 +80,6 @@ func GetFlags() FlagData {
 		Repos:         repos,
 		ProjectNumber: viper.GetInt("project-number"),
 		Authors:       authors,
+		Labels:        viper.GetStringSlice("labels"),
 	}
 }
